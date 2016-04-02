@@ -36,14 +36,23 @@ cdef extern from "pcl/point_cloud.h" namespace "pcl":
         Vector4f sensor_origin_
 
 cdef extern from "indexing.hpp":
-    # Use these instead of operator[] or at.
-    PointXYZ *getptr(PointCloud[PointXYZ] *, size_t)
-    PointXYZ *getptr_at(PointCloud[PointXYZ] *, size_t) except +
-    PointXYZ *getptr_at(PointCloud[PointXYZ] *, int, int) except +
+    cdef cppclass PointCloud[T]:
+        # Use these instead of operator[] or at.
+        T *getptr(PointCloud[T] *, size_t)
+        T *getptr_at(PointCloud[T] *, size_t) except +
+        T *getptr_at(PointCloud[T] *, int, int) except +
 
 cdef extern from "pcl/point_types.h" namespace "pcl":
     cdef struct PointXYZ:
         PointXYZ()
+        float x
+        float y
+        float z
+    cdef struct PointRGBXYZ:
+        PointRGBXYZ()
+        int r
+        int g
+        int b
         float x
         float y
         float z
@@ -80,8 +89,9 @@ cdef extern from "pcl/segmentation/sac_segmentation.h" namespace "pcl":
         void setInputCloud (shared_ptr[PointCloud[T]])
         void segment (PointIndices, ModelCoefficients)
 
-ctypedef SACSegmentation[PointXYZ] SACSegmentation_t
-ctypedef SACSegmentationFromNormals[PointXYZ,Normal] SACSegmentationNormal_t
+cdef cppclass PointCloud[T]:
+    ctypedef SACSegmentation[T] SACSegmentation_t
+    ctypedef SACSegmentationFromNormals[T,Normal] SACSegmentationNormal_t
 
 cdef extern from "pcl/surface/mls.h" namespace "pcl":
     cdef cppclass MovingLeastSquares[I,O]:
@@ -92,14 +102,16 @@ cdef extern from "pcl/surface/mls.h" namespace "pcl":
         void setPolynomialFit(int)
         void process(PointCloud[O] &) except +
 
-ctypedef MovingLeastSquares[PointXYZ,PointXYZ] MovingLeastSquares_t
+cdef cppclass PointCloud[T]:
+    ctypedef MovingLeastSquares[T,T] MovingLeastSquares_t
 
 cdef extern from "pcl/search/kdtree.h" namespace "pcl::search":
     cdef cppclass KdTree[T]:
         KdTree()
 
-ctypedef aligned_allocator[PointXYZ] aligned_allocator_t 
-ctypedef vector2[PointXYZ, aligned_allocator_t] AlignedPointTVector_t
+cdef cppclass PointCloud[T]:
+    ctypedef aligned_allocator[T] aligned_allocator_t 
+    ctypedef vector2[T, aligned_allocator_t] AlignedPointTVector_t
 
 cdef extern from "pcl/octree/octree_pointcloud.h" namespace "pcl::octree":
     cdef cppclass OctreePointCloud[T]:
@@ -111,16 +123,18 @@ cdef extern from "pcl/octree/octree_pointcloud.h" namespace "pcl::octree":
         void deleteTree()
         bool isVoxelOccupiedAtPoint(double, double, double)
         int getOccupiedVoxelCenters(AlignedPointTVector_t)	
-        void deleteVoxelAtPoint(PointXYZ)
+        void deleteVoxelAtPoint(T)
 
-ctypedef OctreePointCloud[PointXYZ] OctreePointCloud_t
+cdef cppclass PointCloud[T]:
+    ctypedef OctreePointCloud[T] OctreePointCloud_t
 
 cdef extern from "pcl/octree/octree_search.h" namespace "pcl::octree":
     cdef cppclass OctreePointCloudSearch[T]:
         OctreePointCloudSearch(double)
-        int radiusSearch (PointXYZ, double, vector[int], vector[float], unsigned int)
+        int radiusSearch (T, double, vector[int], vector[float], unsigned int)
 
-ctypedef OctreePointCloudSearch[PointXYZ] OctreePointCloudSearch_t
+cdef cppclass PointCloud[T]:
+    ctypedef OctreePointCloudSearch[T] OctreePointCloudSearch_t
 
 cdef extern from "pcl/ModelCoefficients.h" namespace "pcl":
     cdef struct ModelCoefficients:
@@ -141,17 +155,19 @@ ctypedef PointIndices PointIndices_t
 ctypedef shared_ptr[PointIndices] PointIndicesPtr_t
 
 cdef extern from "pcl/io/pcd_io.h" namespace "pcl::io":
-    int load(string file_name, PointCloud[PointXYZ] &cloud) nogil except +
-    int loadPCDFile(string file_name,
-                    PointCloud[PointXYZ] &cloud) nogil except +
-    int savePCDFile(string file_name, PointCloud[PointXYZ] &cloud,
-                    bool binary_mode) nogil except +
+    cdef cppclass PointCloud[T]:
+        int load(string file_name, PointCloud[T] &cloud) nogil except +
+        int loadPCDFile(string file_name,
+                        PointCloud[T] &cloud) nogil except +
+        int savePCDFile(string file_name, PointCloud[T] &cloud,
+                        bool binary_mode) nogil except +
 
 cdef extern from "pcl/io/ply_io.h" namespace "pcl::io":
-    int loadPLYFile(string file_name,
-                    PointCloud[PointXYZ] &cloud) nogil except +
-    int savePLYFile(string file_name, PointCloud[PointXYZ] &cloud,
-                    bool binary_mode) nogil except +
+    cdef cppclass PointCloud[T]:
+        int loadPLYFile(string file_name,
+                        PointCloud[T] &cloud) nogil except +
+        int savePLYFile(string file_name, PointCloud[T] &cloud,
+                        bool binary_mode) nogil except +
 
 #http://dev.pointclouds.org/issues/624
 #cdef extern from "pcl/io/ply_io.h" namespace "pcl::io":
